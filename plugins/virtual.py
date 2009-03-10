@@ -6,7 +6,7 @@ import os
 
 path_re = re.compile(r'%((\d+)(\.\d+)?)?([ud%])')
 
-class new(__init__.new):
+class PysievedPlugin(__init__.PysievedPlugin):
     def init(self, config):
         self.uid = config.getint('Virtual', 'uid', None)
         self.gid = config.getint('Virtual', 'gid', None)
@@ -53,5 +53,5 @@ if __name__ == '__main__':
     c = __init__.TestConfig(uid=-1, gid=-1,
                             defaultdomain="woozle.snerk",
                             path='/shared/spool/active/%d/%0.1u/%1.1u/%u/sieve/')
-    n = new(None, c)
+    n = PysievedPlugin(None, c)
     print n.lookup({'username': 'neale@woozle.org'})
