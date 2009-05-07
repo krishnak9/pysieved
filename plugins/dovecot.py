@@ -241,10 +241,10 @@ class PysievedPlugin(__init__.PysievedPlugin):
                   home = part[5:]
 
             # Assuming we were started with elevated privileges, drop them now
-            if (self.gid < 0) and (int(gid) >= 0):
+            if (self.gid < 0) and gid is not None and (int(gid) >= 0):
                 os.setgid(int(gid))
 
-            if (self.uid < 0) and (int(uid) >= 0):
+            if (self.uid < 0) and uid is not None and (int(uid) >= 0):
                 os.setuid(int(uid))
 
             return home
