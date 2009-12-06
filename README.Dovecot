@@ -1,3 +1,6 @@
+Pysieved integration with Dovecot
+=================================
+
 Dovecot authentication
 ----------------------
 
@@ -6,18 +9,18 @@ in the [Dovecot] session to the path to a client socket as defined
 in dovecot.conf, e.g. :
 
 dovecot.conf :
-  auth default {
-    socket listen {
-      client {
-        path = /var/run/dovecot/auth-client
-        mode = 0666
+    auth default {
+      socket listen {
+        client {
+          path = /var/run/dovecot/auth-client
+          mode = 0666
+        }
       }
     }
-  }
 
 pysieved.ini :
-  [Dovecot]
-  mux = /var/run/dovecot/auth-client
+    [Dovecot]
+    mux = /var/run/dovecot/auth-client
 
 
 
@@ -29,18 +32,18 @@ user, set the master config item in the [Dovecot] session to the
 path to a master socket as defined in dovecot.conf, e.g. :
 
 dovecot.conf :
-  auth default {
-    socket listen {
-      master {
-        path = /var/run/dovecot/auth-master
-        mode = 0600
+    auth default {
+      socket listen {
+        master {
+          path = /var/run/dovecot/auth-master
+          mode = 0600
+        }
       }
     }
-  }
 
 pysieved.ini :
-  [Dovecot]
-  master = /var/run/dovecot/auth-master
+    [Dovecot]
+    master = /var/run/dovecot/auth-master
 
 
 
@@ -52,9 +55,9 @@ uid/gid, it is possible to run pysieved as non-root by specifying
 NUMERIC uid/gid values in the [Dovecot] section, e.g. :
 
 pysieved.ini :
-  [Dovecot]
-  uid=1000
-  gid=100
+    [Dovecot]
+    uid=1000
+    gid=100
 
 If you do not intend to run pysieved as non-root, skip directly
 to the next section.
@@ -67,8 +70,8 @@ The pidfile can be moved to a directory that is writeable by the
 specified uid/gid, e.g. :
 
 pysieved.ini :
-  [main]
-  pidfile = /var/run/pysieved/pysieved.pid
+    [main]
+    pidfile = /var/run/pysieved/pysieved.pid
 
 
 The Dovecot client socket (mux) can safely be exported with 0666
@@ -80,32 +83,32 @@ permissions if the default value of 0660 does not work.
 If you use Postfix + Dovecot SASL, a common scenario places
 the client socket inside the Postfix chroot area, as
 /var/spool/postfix/private/auth where the private directory
-is accessible only by the postfix user. 
+is accessible only by the postfix user.
 You MUST move it to a different, public, directory if you want
 to use pysieved with Dovecot authentication and restricted
 uid/gid. E.g. :
 
 dovecot.conf :
-  auth default {
-    socket listen {
-      client {
-        path = /var/run/dovecot/auth-client
-        mode = 0666
+    auth default {
+      socket listen {
+        client {
+          path = /var/run/dovecot/auth-client
+          mode = 0666
+        }
       }
     }
-  }
 
 pysieved.ini :
-  [Dovecot]
-  mux = /var/run/dovecot/auth-client
+    [Dovecot]
+    mux = /var/run/dovecot/auth-client
 
 main.cf :
-  smtpd_sasl_type = dovecot
-  smtpd_sasl_path = /var/run/dovecot/auth-client
+    smtpd_sasl_type = dovecot
+    smtpd_sasl_path = /var/run/dovecot/auth-client
 
 master.cf:
-  # service type  private unpriv  chroot  wakeup  maxproc command + args
-  smtp    inet    n       -       n       -       -       smtpd
+    # service type  private unpriv  chroot  wakeup  maxproc command + args
+    smtp    inet    n       -       n       -       -       smtpd
 
 Note that if the socket is not under /var/spool/postfix you
 cannot chroot smtpd, hence the master.cf line above.
@@ -127,29 +130,31 @@ owned by the same user who owns the mail storage (which works
 out well if using the Dovecot deliver LDA with Postfix). E.g. :
 
 dovecot.conf :
-  auth default {
-    socket listen {
-      master {
-        path = /var/run/dovecot/auth-master
-        mode = 0600
-        user = vmail
-        group = vmail
+    auth default {
+      socket listen {
+        master {
+          path = /var/run/dovecot/auth-master
+          mode = 0600
+          user = vmail
+          group = vmail
+        }
       }
     }
-  }
 
 pysieved.ini :
-  [Dovecot]
-  master = /var/run/dovecot/auth-master
+    [Dovecot]
+    master = /var/run/dovecot/auth-master
 
 master.cf :
-  dovecot         unix    -       n       n       -       -       pipe
-    flags=DRhu user=vmail:vmail
-    argv=/usr/local/libexec/dovecot/deliver -f $sender -d $recipient
+    dovecot         unix    -       n       n       -       -       pipe
+      flags=DRhu user=vmail:vmail
+      argv=/usr/local/libexec/dovecot/deliver -f $sender -d $recipient
 
 User vmail and group vmail should be replaced with the correct names for
 the uid/gid that owns the virtual mail storage.  Pysieved should also
 run with this uid/gid.
+
+
 
 If the home directory is the Maildir
 ------------------------------------
@@ -157,8 +162,7 @@ If the home directory is the Maildir
 You may have a setup where your users' home directories are their
 Maildirs.  In this case, dovecot IMAPd will show "pysieved" and
 "dovecot.sieve" folders.  There are several solutions to this problem,
-as detailed in [this email by Phillipe
-Levan](http://woozle.org/list-archives/pysieved/msg00155.html):
+as detailed in [this email by Philippe Levan](http://woozle.org/list-archives/pysieved/msg00155.html):
 
 > A few options to not show a .dovecot.sieve file :
 >
