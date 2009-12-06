@@ -18,6 +18,7 @@ The server ships with the following plug-ins:
 Authentication:
 
 * [Dovecot](http://gitorious.org/pysieved/pages/Dovecot)
+* /etc/passwd, /etc/shadow ([dev branch](http://gitorious.org/pysieved/pysieved/commits/dev))
 * PAM
 * SASL
 * MySQL
@@ -32,7 +33,7 @@ Homedir lookup & session initiation:
 Storage:
 
 * Dovecot
-* Exim ([introduced after 1.0](http://gitorious.org/pysieved/pysieved/archive-tarball/master))
+* Exim (introduced [after 1.0](http://gitorious.org/pysieved/pysieved/commits/master))
 
 
 Additional back-ends are easy to write, just copy one of the existing
@@ -55,6 +56,8 @@ or with git:
 
 A [web view of revisions](http://gitorious.org/pysieved/pysieved) is
 also available for those without git.
+
+If you like being on the bleeding edge, try the [dev branch](http://gitorious.org/pysieved/pysieved/commits/dev)
 
 
 Installation
