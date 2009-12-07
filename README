@@ -21,12 +21,14 @@ Authentication:
 * /etc/passwd, /etc/shadow ([dev branch](http://gitorious.org/pysieved/pysieved/commits/dev))
 * PAM
 * SASL
+* LDAP ([dev branch](http://gitorious.org/pysieved/pysieved/commits/dev))
 * MySQL
 
 Homedir lookup & session initiation:
 
 * Dovecot
 * /etc/passwd
+* LDAP
 * MySQL
 * simple virtual hosting (eg. /var/lib/virtual/username)
 

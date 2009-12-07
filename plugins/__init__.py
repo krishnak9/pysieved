@@ -24,7 +24,13 @@ class PysievedPlugin:
     mechs = [ 'PLAIN' ]
 
     def __init__(self, log_func, config):
-        self.log = log_func
+        if log_func:
+            self.log = log_func
+        else:
+            def print_log(l, msg):
+                print '%s %s' % ("=" * l, msg)
+
+            self.log = print_log
         self.init(config)
 
     def init(self, config):
