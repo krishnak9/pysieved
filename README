@@ -73,6 +73,11 @@ To run as a daemon, just run
     python pysieved.py
 
 
+Troubleshooting
+---------------
+
+If you encounter problems, try the tips in the [TROUBLESHOOTING
+document](http://gitorious.org/pysieved/pages/Troubleshooting).
 
 
 Mail list / IRC channel
