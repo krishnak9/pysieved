@@ -1,0 +1,164 @@
+Troubleshooting Pysieved
+========================
+
+
+Before you start
+----------------
+
+Make sure SIEVE is working for your mail server without
+pysieved.
+
+For Dovecot, manually create a .dovecot.sieve file
+in the user's "home directory" or whatever directory
+you configured in the dovecot-sieve (aka cmusieve)
+plugin.
+
+Sample filter :
+
+    require ["fileinto"];
+    if header :contains "Subject" "Test"
+    {
+    fileinto "Test";
+    stop;
+    }
+
+For Exim, the file to use is .forward in the user's
+home directory. In addition to the SIEVE code itself,
+the .forward file for Exim must contain and start
+with the line :
+
+    # Sieve filter
+
+If a message with "Test" in the subject does not
+get delivered to the "Test" folder, you need to
+troubleshoot Dovecot or Exim first.
+
+Hints :
+
+* Is SIEVE support compiled in/configured ? (Did you list
+  cmusieve in Dovecot's lda section's mail_plugins ?)
+* Is Dovecot looking for the script in the right place ?
+  (Is it derived from home, mail_location, the plugin's sieve
+  variable ?)
+* Is the script syntactically correct ? (Dovecot uses sievec
+  to compile the script into bytecode, Exim has a test
+  function in its modified sendmail.)
+
+If you are planning to use Dovecot as the auth and/or
+userdb plugin, please make sure that logins to Dovecot
+via POP3 or IMAP are working.
+
+
+Check the logs
+--------------
+
+By default pysieved will send some basic information to syslog.
+Depending on your system logger's configuration, that information
+may end up in different files, usually under /var/log. Some systems
+have a single file for all mail-related logs, some systems spread
+it between different files based on severity, and others may create
+a log file based on the program name. If in doubt, check your
+system logger's configuration file.
+
+Although you will get limited information at the default verbosity
+level, it will tell you whether pysieved actually saw a connection
+(if not, you'd better check your MANAGESIEVE client's configuration)
+and whether authentication succeeded.
+
+If you see a connection but there are no log entries about
+successful logins, either the auth or the userdb plugin failed.
+Don't forget to check the logs relevant to the plugin(s) you
+selected, such as Dovecot's syslogs.
+
+
+Increase the verbosity level
+----------------------------
+
+If logging at the default level does not seem to provide any
+useful information, you can increase pysieved's verbosity level.
+
+The best way to do that without having to go back and check the
+logs every time is to run it in debug mode at the highest
+verbosity level.
+
+    python pysieved.py -d -v 9
+
+The debug option keeps pysieved running in the foreground
+and attached to your terminal so that you can see log
+messages and exceptions.
+
+You will need a verbosity level of at least 3 to see all
+interactions between pysieved and the client that connected
+to it. Some plugins, such as Dovecot will log additional
+information at level 4 and up.
+
+Even if the output doesn't mean anything to you, this is the
+most complete information that you can provide us when asking
+for help.
+
+A note of caution : if the output shows that PLAIN authentication
+is being used, you may want to obfuscate the base64-encoded
+string that follows, as the password can easily be recovered
+from it. While you are at it, you can check for yourself that
+the credentials that are sent to pysieved are what you would
+expect.  For instance, if you see this :
+
+    C: AUTHENTICATE "PLAIN" "AHVzZXIAcGFzcw=="
+
+You can do this :
+
+    perl -MMIME::Base64 -e 'print decode_base64("AHVzZXIAcGFzcw==")' | od -c
+    0000000  \0   u   s   e   r  \0   p   a   s   s
+    0000012
+
+
+Simulate a connection to pysieved
+---------------------------------
+
+As long as you haven't required encryption and you configured
+an authentication plugin that accepts PLAIN authentication,
+you can manually interact with pysieved to make sure it is
+working, independently from whatever client you plan on using.
+
+First, you will need the base64-encoded credentials :
+
+    perl -MMIME::Base64 -e 'print encode_base64("\0user\0pass")'
+    AHVzZXIAcGFzcw==
+
+That's \0, followed by your login name, followed by \0, and
+finally your password. If your login name is a full e-mail
+address, you will need to escape the @ sign with a backslash
+i.e. "\0user\@domain\0password".
+
+Now you are ready to use telnet to interact with pysieved
+(in the following sample session, whenever 'OK' appears,
+pysieved is waiting for you to enter the next line) :
+
+    telnet localhost 2000
+    Trying 127.0.0.1...
+    Connected to localhost.
+    Escape character is '^]'.
+    "IMPLEMENTATION" "pysieved 0.91+DEV"
+    "SASL" "LOGIN PLAIN"
+    "SIEVE" "fileinto reject envelope vacation imapflags notify subaddress relational comparator-i;ascii-numeric"
+    "STARTTLS"
+    OK
+    AUTHENTICATE "PLAIN" "AHVzZXIAcGFzcw=="
+    OK
+    LISTSCRIPTS
+    "phpscript" ACTIVE
+    OK
+    GETSCRIPT "phpscript"
+    {86}
+    require ["fileinto"];
+    if header :contains "Subject" "Test"
+    {
+    fileinto "Test";
+    stop;
+    }
+    
+    OK
+    LOGOUT
+    OK
+    Connection to localhost closed by foreign host.
+
