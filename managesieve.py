@@ -29,7 +29,8 @@ try:
 except:
     have_tls = False
 
-version = "pysieved 1.0"
+import version
+
 maxsize = 100000
 
 
@@ -352,7 +353,7 @@ class RequestHandler(SocketServer.BaseRequestHandler):
     def do_capability(self):
         "2.4.  CAPABILITY Command"
 
-        self.send('IMPLEMENTATION', version)
+        self.send('IMPLEMENTATION', version.version)
         if self.tls or not self.tls_params['required']:
             self.send('SASL', ' '.join(self.list_mech()))
         else:
