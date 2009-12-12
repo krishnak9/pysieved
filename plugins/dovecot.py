@@ -231,6 +231,7 @@ class PysievedPlugin(__init__.PysievedPlugin):
             uid = None
             gid = None
             home = None
+            sieve = None
 
             for part in ret.split('\t'):
               if part.startswith('uid='):
@@ -239,6 +240,8 @@ class PysievedPlugin(__init__.PysievedPlugin):
                   gid = part[4:]
               elif part.startswith('home='):
                   home = part[5:]
+              elif part.startswith('sieve='):
+                  sieve = part[6:]
 
             # Assuming we were started with elevated privileges, drop them now
             if (self.gid < 0) and gid is not None and (int(gid) >= 0):
@@ -246,6 +249,9 @@ class PysievedPlugin(__init__.PysievedPlugin):
 
             if (self.uid < 0) and uid is not None and (int(uid) >= 0):
                 os.setuid(int(uid))
+
+            if sieve:
+                return sieve
 
             return home
         else:
@@ -274,3 +280,19 @@ class PysievedPlugin(__init__.PysievedPlugin):
                                        self.scripts_dir,
                                        self.active_file,
                                        params['homedir'])
+
+
+if __name__ == '__main__':
+    c = __init__.TestConfig(mux = '/var/spool/postfix/auth/dovecot',
+                            master = '/var/run/dovecot/auth-master',
+                            sievec = '/usr/lib/dovecot/sievec',
+                            scripts = '.pysieved',
+                            active = '.dovecot.sieve',
+                            uid = -1, gid = -1)
+    n = PysievedPlugin(None, c)
+    print n.mechanisms()
+    print n.do_sasl_first('PLAIN',
+                          b64_encode('\0%s\0%s' % ('levan@epix.net',
+                                                   'foobar')))
+    print n.lookup({'username': 'levan@epix.net'})
+
