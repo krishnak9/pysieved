@@ -35,14 +35,16 @@ troubleshoot Dovecot or Exim first.
 
 Hints :
 
-* Is SIEVE support compiled in/configured ? (Did you list
-  cmusieve in Dovecot's lda section's mail_plugins ?)
+* Is SIEVE support compiled in/configured ?
+  - Did you list the older cmusieve or rewritten sieve plugin
+    in Dovecot's lda section's mail_plugins ?
+  - Is the library present in the mail_plugin_dir ?
 * Is Dovecot looking for the script in the right place ?
-  (Is it derived from home, mail_location, the plugin's sieve
-  variable ?)
-* Is the script syntactically correct ? (Dovecot uses sievec
-  to compile the script into bytecode, Exim has a test
-  function in its modified sendmail.)
+  - Is your userdb returning a home for the user ?
+  - Otherwise, did you set the plugin's sieve variable ?
+* Is the script syntactically correct ?
+  - Dovecot uses sievec to compile the script into bytecode.
+  - Exim has a test function in its modified sendmail.
 
 If you are planning to use Dovecot as the auth and/or
 userdb plugin, please make sure that logins to Dovecot

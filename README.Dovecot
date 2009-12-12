@@ -27,6 +27,10 @@ pysieved.ini :
 Dovecot userdb lookup
 ---------------------
 
+If you don't place user filters in their home directory but use
+the dovecot-sieve plugin's "sieve" variable to define their
+location, skip to the next section.
+
 If you want to use Dovecot userdb to get the uid/gid/home of the
 user, set the master config item in the [Dovecot] session to the
 path to a master socket as defined in dovecot.conf, e.g. :
@@ -44,6 +48,33 @@ dovecot.conf :
 pysieved.ini :
     [Dovecot]
     master = /var/run/dovecot/auth-master
+
+
+
+Dovecot SIEVE without a home directory
+--------------------------------------
+
+Some people do not define a home directory for "virtual" dovecot accounts.
+Instead, they use a common directory containing per-use filters,
+
+e.g. in dovecot.conf :
+    plugin {
+        ...
+        sieve = /var/sieve-scripts/%u.sieve
+    }
+
+In that case, pysieved's virtual plugin is more appropriate for
+userdb lookups.
+
+Please note that pysieved supports different substitution
+variables, described in the sample pysieved.ini. For instance,
+you can use the template above as-is if you login with a
+simple username (no @ sign), but if you use a full e-mail
+address, the corresponding path setting would be :
+
+pysieved.ini:
+    [Virtual]
+    path = /var/sieve-scripts/%u@%d.sieve
 
 
 
