@@ -24,4 +24,6 @@ Thanks to:
   led to removal of Konrad's capabilities addition :)
 * Farkas Levente <lfarkas@bppiac.hu> for the RPM spec file
 * Modestas Vainius <modestas@vainius.eu> for a bugfix to pam.py
+* David Ramsden <david@0wned.it> for the Dovecot tip to use multiple
+  authentication sockets for Postfix and pysieved
 
