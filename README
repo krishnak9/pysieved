@@ -32,7 +32,7 @@ Homedir lookup & session initiation:
 Storage:
 
 * Dovecot
-* Exim ([introduced after 1.0](http://gitorious.org/pysieved/pysieved/archive-tarball/master))
+* Exim
 
 
 Additional back-ends are easy to write, just copy one of the existing
@@ -44,9 +44,8 @@ managesieve protocol or forking.
 Download
 --------
 
-[Version 1.0](http://gitorious.org/pysieved/pysieved/archive-tarball/8081bb65)
-was released on May 10, 2008 after release candidate 3 had been out for
-6 weeks with no bug reports.
+Version 1.1 was released on March 7, 2010, rolling the long-pending
+support for Exim into an official release.
 
 You can get the latest version [as a tarball](http://gitorious.org/pysieved/pysieved/archive-tarball/master),
 or with git:

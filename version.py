@@ -18,4 +18,4 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 ## USA
 
-version = "1.1-RC1"
+version = "1.1"
