@@ -49,6 +49,8 @@ class PluginsTest(unittest.TestCase):
         global config
         self.conf = CONF
         self.config = config
+        self.good_script = 'require ["fileinto"];\nfileinto "TEST";'
+        self.bad_script = 'foo;'
 
         if self.conf['verbosity'] > 0:
             print
@@ -104,6 +106,144 @@ class PluginsTest(unittest.TestCase):
         p = dovecot.PysievedPlugin(printlog, c)
 
         self.generic_lookup(p, self.conf['user'])
+
+
+    def testDovecotSieveHasError(self):
+        try:
+            from plugins import dovecot
+        except ImportError:
+            print 'skipping (deps), ',
+            return
+
+        if self.config.getboolean('Dovecot', 'skip', False):
+            print 'skipping (conf), ',
+            return
+
+        sievec = self.config.get('Dovecot', 'sievec', '')
+
+        if not sievec:
+            print 'skipping (conf), ',
+            return
+
+        c = TestConfig(mux = '', master = '',
+                       sievec = sievec,
+                       uid = -1, gid = -1)
+        p = dovecot.PysievedPlugin(printlog, c)
+
+        self.assertEquals(None, p.sieve_has_error('/tmp', self.good_script))
+        self.assertNotEquals(None, p.sieve_has_error('/tmp', self.bad_script))
+
+
+    def testDovecotPreSave(self):
+        try:
+            from plugins import dovecot
+        except ImportError:
+            print 'skipping (deps), ',
+            return
+
+        if self.config.getboolean('Dovecot', 'skip', False):
+            print 'skipping (conf), ',
+            return
+
+        sievec = self.config.get('Dovecot', 'sievec', '')
+
+        if not sievec:
+            print 'skipping (conf), ',
+            return
+
+        c = TestConfig(mux = '', master = '',
+                       sievec = sievec,
+                       uid = -1, gid = -1)
+        p = dovecot.PysievedPlugin(printlog, c)
+
+        self.assertEquals(self.good_script, p.pre_save('/tmp', self.good_script))
+
+
+    def testDovecotPostLoad(self):
+        try:
+            from plugins import dovecot
+        except ImportError:
+            print 'skipping (deps), ',
+            return
+
+        if self.config.getboolean('Dovecot', 'skip', False):
+            print 'skipping (conf), ',
+            return
+
+        c = TestConfig(mux = '', master = '',
+                       uid = -1, gid = -1)
+        p = dovecot.PysievedPlugin(printlog, c)
+
+        self.assertEquals(self.good_script, p.post_load(self.good_script))
+
+
+    def testEximSieveHasError(self):
+        try:
+            from plugins import exim
+        except ImportError:
+            print 'skipping (deps), ',
+            return
+
+        if self.config.getboolean('Exim', 'skip', False):
+            print 'skipping (conf), ',
+            return
+
+        sendmail = self.config.get('Exim', 'sendmail', '')
+
+        if not sendmail:
+            print 'skipping (conf), ',
+            return
+
+        c = TestConfig(sendmail = sendmail,
+                       uid = -1, gid = -1)
+        p = exim.PysievedPlugin(printlog, c)
+
+        self.assertEquals(None, p.sieve_has_error('/tmp',
+                                                  '# Sieve filter\n' +
+                                                  self.good_script))
+        self.assertNotEquals(None, p.sieve_has_error('/tmp', self.bad_script))
+
+
+    def testEximPreSave(self):
+        try:
+            from plugins import exim
+        except ImportError:
+            print 'skipping (deps), ',
+            return
+
+        if self.config.getboolean('Exim', 'skip', False):
+            print 'skipping (conf), ',
+            return
+
+        sendmail = self.config.get('Exim', 'sendmail', '')
+
+        if not sendmail:
+            print 'skipping (conf), ',
+            return
+
+        c = TestConfig(sendmail = sendmail,
+                       uid = -1, gid = -1)
+        p = exim.PysievedPlugin(printlog, c)
+
+        self.assertEquals('# Sieve filter\n' + self.good_script, p.pre_save('/tmp', self.good_script))
+
+
+    def testEximPostLoad(self):
+        try:
+            from plugins import exim
+        except ImportError:
+            print 'skipping (deps), ',
+            return
+
+        if self.config.getboolean('Exim', 'skip', False):
+            print 'skipping (conf), ',
+            return
+
+        c = TestConfig(mux = '', master = '',
+                       uid = -1, gid = -1)
+        p = exim.PysievedPlugin(printlog, c)
+
+        self.assertEquals('# Sieve filter\n' + self.good_script, p.post_load('# Sieve filter\n' + self.good_script))
 
 
     def testHtpasswdAuth(self):

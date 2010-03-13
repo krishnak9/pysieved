@@ -28,7 +28,7 @@ class PysievedPlugin(__init__.PysievedPlugin):
     def init(self, config):
         self.uid = config.getint('Virtual', 'uid', None)
         self.gid = config.getint('Virtual', 'gid', None)
-        self.defaultdomain = config.get('Virtual', 'defaultdomain', 'none')
+        self.defaultdomain = config.get('Virtual', 'defaultdomain', None)
         self.path = config.get('Virtual', 'path', None)
         assert ((self.uid is not None) and
                 (self.gid is not None) and

@@ -108,6 +108,35 @@ class PysievedPlugin:
         raise NotImplementedError()
 
 
+    def sieve_has_error(self, tmpdir, script):
+        """Checks if the script is syntactically correct.
+
+        tmpdir is a location to create temporary files for syntax checking
+        script is the formatted SIEVE filter returned by pre_save()
+        """
+
+        raise NotImplementedError()
+
+
+    def pre_save(self, tmpdir, script):
+        """Formats the script to fit the local delivery agent's requirements.
+
+        tmpdir is a location to create temporary files for syntax checking
+        script is the raw SIEVE filter as received from the MANAGESIEVE client
+        """
+
+        raise NotImplementedError()
+
+
+    def post_load(self, script):
+        """Removes any changes introduced by pre_save().
+
+        script is the SIEVE filter as read from storage
+        """
+
+        raise NotImplementedError()
+
+
 class ScriptStorage:
     def __setitem__(self, k, v):
         if False:

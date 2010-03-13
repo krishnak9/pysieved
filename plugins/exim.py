@@ -27,8 +27,7 @@ import re
 
 
 class EximStorage(FileStorage.FileStorage):
-    def __init__(self, sieve_test, mydir, active_file, homedir):
-        self.sieve_test = sieve_test
+    def __init__(self, mydir, active_file, homedir):
         self.mydir = mydir
         self.active_file = active_file
         self.homedir = homedir
@@ -55,6 +54,7 @@ class EximStorage(FileStorage.FileStorage):
 
     def __setitem__(self, k, v):
         if not re.match(self.sieve_re, v, re.S):
+            self.log(5, 'Adding Sieve filter header')
             v = self.sieve_hdr + '\n' + v
         FileStorage.FileStorage.__setitem__(self, k, v)
 
@@ -73,6 +73,9 @@ class PysievedPlugin(__init__.PysievedPlugin):
         self.uid = config.getint('Exim', 'uid', -1)
         self.gid = config.getint('Exim', 'gid', -1)
 
+        self.sieve_hdr = '# Sieve filter'
+        self.sieve_re = re.compile('^' + re.escape(self.sieve_hdr))
+
         # Drop privileges here if all users share the same uid/gid
         if self.gid >= 0:
             os.setgid(self.gid)
@@ -80,11 +83,18 @@ class PysievedPlugin(__init__.PysievedPlugin):
             os.setuid(self.uid)
 
 
-    def exim_sieve_has_error(self, basedir, script):
-        compiled = FileStorage.TempFile(basedir)
-        compiled.close()
+    def sieve_has_error(self, tmpdir, script):
+        self.log(5, 'checking script')
+
+        testfile = FileStorage.TempFile(tmpdir)
+        testfile.write(script)
+        testfile.close()
+
+        self.log(7, 'popen2("%s -bf %s < %s")' % (self.sendmail,
+                                                  testfile.name,
+                                                  '/dev/null'))
         p = popen2.Popen3(('%s -bf %s < %s' % (self.sendmail,
-                                               script,
+                                               testfile.name,
                                                '/dev/null')),
                           True)
         p.tochild.close()
@@ -92,13 +102,33 @@ class PysievedPlugin(__init__.PysievedPlugin):
         err_str = p.childerr.read().strip()
         p.fromchild.close()
         p.childerr.close()
-        if p.wait():
+        rc = p.wait()
+        self.log(7, 'rc = %d' % rc)
+        if rc:
+            self.log(7, 'err_str = %s' % err_str)
+            self.log(5, 'check failed')
             return err_str
+        self.log(5, 'check succeeded')
         return None
 
 
     def create_storage(self, params):
-        return EximStorage(self.exim_sieve_has_error,
-                           self.scripts_dir,
+        return EximStorage(self.scripts_dir,
                            self.active_file,
                            params['homedir'])
+
+
+    def pre_save(self, tmpdir, script):
+        if not re.match(self.sieve_re, script, re.S):
+            script = self.sieve_hdr + '\n' + script
+
+        err_str = self.sieve_has_error(tmpdir, script)
+        if err_str:
+            raise ValueError(err_str)
+
+        return script
+
+    def post_load(self, script):
+        return script
+
+

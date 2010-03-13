@@ -39,17 +39,13 @@ def unquote(str):
     return urllib.unquote(str)
 
 
-def write_out(sieve_has_error, basedir, final, txt):
+def write_out(basedir, final, txt):
     script = TempFile(basedir)
 
     script.write(txt)
     script.close()
 
-    err_str = sieve_has_error(basedir, script.name)
-    if err_str is None:
-        os.rename(script.name, final)
-    else:
-        raise ValueError(err_str)
+    os.rename(script.name, final)
 
 
 class TempFile:
@@ -78,8 +74,7 @@ class TempFile:
 
 
 class FileStorage(__init__.ScriptStorage):
-    def __init__(self, sieve_test, mydir, active_file, homedir):
-        self.sieve_test = sieve_test
+    def __init__(self, mydir, active_file, homedir):
         self.mydir = mydir
         self.active_file = active_file
         self.homedir = homedir
@@ -97,8 +92,7 @@ class FileStorage(__init__.ScriptStorage):
 
 
     def __setitem__(self, k, v):
-        write_out(self.sieve_test,
-                  self.basedir,
+        write_out(self.basedir,
                   os.path.join(self.basedir, quote(k)),
                   v)
 

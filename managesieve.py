@@ -383,7 +383,7 @@ class RequestHandler(SocketServer.BaseRequestHandler):
 
         self.check_auth()
         try:
-            self.storage[name] = content
+            self.storage[name] = self.pre_save(content)
         except ValueError, reason:
             return self.no(reason=reason)
         return self.ok()
@@ -422,7 +422,7 @@ class RequestHandler(SocketServer.BaseRequestHandler):
 
         self.check_auth()
         try:
-            s = self.storage[name]
+            s = self.post_load(self.storage[name])
         except KeyError:
             return self.no(reason='No script by that name')
         line = ('{%d}\r\n' % len(s))
@@ -469,5 +469,9 @@ class RequestHandler(SocketServer.BaseRequestHandler):
                 'key': None,
                 'cert': None}
 
+    def pre_save(self, script):
+        raise NotImplementedError()
 
+    def post_load(self, script):
+        raise NotImplementedError()
 

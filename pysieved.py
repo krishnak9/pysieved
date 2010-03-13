@@ -64,6 +64,9 @@ def main():
     parser.add_option('-B', '--base',
                       help='Mail base directory',
                       action='store', dest='base', default='')
+    parser.add_option('-t', '--tmpdir',
+                      help='Temp directory',
+                      action='store', dest='tmpdir', default='')
     parser.add_option('-T', '--tls',
                       help='STARTTLS required before authentication',
                       action='store_true', dest='tls_required', default=False)
@@ -83,6 +86,8 @@ def main():
     pidfile = options.pidfile or config.get('main', 'pidfile',
                                             '/var/run/pysieved.pid')
     base = options.base or config.get('main', 'base', '')
+    tmpdir = options.tmpdir or config.get('main', 'tmpdir', '') or \
+             os.environ.get('TMPDIR', '/tmp')
     tls_required = options.tls_required or config.getboolean('TLS', 'required', False)
     tls_key = options.tls_key or config.get('TLS', 'key', '')
     tls_cert = options.tls_cert or config.get('TLS', 'cert', '')
@@ -147,6 +152,8 @@ def main():
                       None, None, True)
     storage = __import__('plugins.%s' % config.get('main', 'storage', 'Dovecot').lower(),
                          None, None, True)
+    formatter = __import__('plugins.%s' % config.get('main', 'formatter', 'Dovecot').lower(),
+                         None, None, True)
 
 
     # If the same plugin is used in two places, recycle it
@@ -163,6 +170,15 @@ def main():
         store = homedir
     else:
         store = storage.PysievedPlugin(log, config)
+
+    if formatter == auth:
+        format = authenticate
+    elif formatter == userdb:
+        format = homedir
+    elif formatter == storage:
+        format = store
+    else:
+        format = formatter.PysievedPlugin(log, config)
 
 
     class handler(managesieve.RequestHandler):
@@ -221,6 +237,12 @@ def main():
             return {'required': tls_required,
                     'key': tls_privateKey,
                     'cert': tls_certChain}
+
+        def pre_save(self, script):
+            return format.pre_save(tmpdir, script)
+
+        def post_load(self, script):
+            return format.post_load(script)
 
     if options.stdin:
         sock = socket.fromfd(0, socket.AF_INET, socket.SOCK_STREAM)
