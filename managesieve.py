@@ -412,7 +412,8 @@ class RequestHandler(SocketServer.BaseRequestHandler):
                 self.storage.set_active(name)
         except KeyError:
             return self.no(reason='No script by that name')
-        except:
+        except Exception, e:
+            self.log(3, 'caught exception %s: %s' % (type(e), str(e)))
             return self.no()
         return self.ok()
 

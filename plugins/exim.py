@@ -107,7 +107,7 @@ class PysievedPlugin(__init__.PysievedPlugin):
         if rc:
             self.log(7, 'err_str = %s' % err_str)
             self.log(5, 'check failed')
-            return err_str
+            return err_str or 'check failed'
 
         # It has been reported that exim -bf always returns 0
         # and errors are reported on standard output instead.
