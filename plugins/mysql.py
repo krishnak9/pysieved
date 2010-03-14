@@ -18,8 +18,132 @@
 ## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 ## USA
 
-import __init__
 import MySQLdb
+import re
+
+import __init__
+
+
+expand_re = re.compile('\%\((username|password|name|script)\)s|"\%\((username|password|name|script)\)s"')
+
+def expand_query(query, params):
+    values = []
+    for match in expand_re.finditer(query):
+        sub = match.group().replace('"', '')
+        if sub == '%(username)s':
+            values.append(params['username'])
+        elif sub == '%(password)s':
+            values.append(params['password'])
+        elif sub == '%(script)s':
+            values.append(params['script'])
+        elif sub == '%(content)s':
+            values.append(params['content'])
+
+    query = re.sub(expand_re, '%s', query)
+
+    return (query, values)
+
+
+class MysqlStorage(__init__.ScriptStorage):
+    def init(self, conn, params, config):
+        self.conn = conn
+        self.params = params
+        self.list_query = config.get('MySQL', 'list_query')
+        self.get_query = config.get('MySQL', 'get_query')
+        self.update_query = config.get('MySQL', 'update_query')
+        self.inset_query = config.get('MySQL', 'inset_query')
+        self.delete_query = config.get('MySQL', 'delete_query')
+        self.active_query = config.get('MySQL', 'active_query')
+        self.set_active_query = config.get('MySQL', 'set_active_query')
+        self.clear_active_query = config.get('MySQL', 'clear_active_query')
+
+    def __iter__(self):
+        query, values = expand_query(self.list_query,
+                                     dict(params))
+        cursor = self.conn.cursor()
+        cursor.execute(query, values)
+        results = cursor.fetchall()
+        for row in results:
+            if row:
+                yield row[0]
+            else:
+                break
+
+    def has_key(self, k):
+        query, values = expand_query(self.get_query,
+                                     dict(params,
+                                          name = k))
+        cursor = self.conn.cursor()
+        cursor.execute(query, values)
+        if cursor.fetchone():
+            return True
+        return False
+
+    def __getitem__(self, k):
+        if k != None and not self.has_key(k):
+            raise KeyError('Unknown script')
+        query, values = expand_query(self.get_query,
+                                     dict(params,
+                                          name = k))
+        cursor = self.conn.cursor()
+        cursor.execute(query, values)
+        row = cursor.fetchone()
+        return row[0]
+
+    def __setitem__(self, k, v):
+        if self.has_key(k):
+            query, values = expand_query(self.update_query,
+                                         dict(params,
+                                              name = k,
+                                              script = v))
+        else:
+            query, values = expand_query(self.insert_query,
+                                         dict(params,
+                                              name = k,
+                                              script = v))
+        cursor = self.conn.cursor()
+        cursor.execute(query, values)
+
+    def __delitem__(self, k):
+        if self.is_active(k):
+            raise ValueError('Script is active')
+        query, values = expand_query(self.delete_query,
+                                     dict(params,
+                                          name = k))
+        cursor = self.conn.cursor()
+        cursor.execute(query, values)
+
+    def get_active(self):
+        query, values = expand_query(self.active_query,
+                                     dict(params))
+        cursor = self.conn.cursor()
+        cursor.execute(query, values)
+        row = cursor.fetchone()
+        if row:
+            return row[0]
+        return None
+
+    def is_active(self, k):
+        if k != None and not self.has_key(k):
+             raise KeyError('Unknown script')
+        return self.get_active() == k
+
+    def set_active(self, k):
+        if k:
+            if not self.has_key(k):
+                raise KeyError('Unknown script')
+        query, values = expand_query(self.clear_active_query,
+                                     dict(params,
+                                          name = active))
+        cursor = self.conn.cursor()
+        cursor.execute(query, values)
+        if k:
+            query, values = expand_query(self.set_active_query,
+                                         dict(params,
+                                              name = k))
+            cursor = self.conn.cursor()
+            cursor.execute(query, values)
+
 
 class PysievedPlugin(__init__.PysievedPlugin):
     def init(self, config):
@@ -42,7 +166,8 @@ class PysievedPlugin(__init__.PysievedPlugin):
 
     def auth(self, params):
         cursor = self.conn.cursor()
-        cursor.execute(self.auth_query % params)
+        query, values = expand_query(self.auth_query, params)
+        cursor.execute(query, values)
         row = cursor.fetchone()
         cursor.close()
 
@@ -54,9 +179,14 @@ class PysievedPlugin(__init__.PysievedPlugin):
 
     def lookup(self, params):
         cursor = self.conn.cursor()
-        cursor.execute(self.user_query % params)
+        query, values = expand_query(self.user_query, params)
+        cursor.execute(query, values)
         row = cursor.fetchone()
         assert row, 'No results from select (invalid user?)'
         cursor.close()
 
         return row[0]
+
+
+    def create_storage(self, params):
+        return MysqlStorage(self.conn, self.params, self.config)

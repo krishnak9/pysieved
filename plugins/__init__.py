@@ -170,10 +170,10 @@ class TestConfig:
     def __init__(self, **kwargs):
         self.dict = kwargs.copy()
 
-    def get(self, sect, key, default):
+    def get(self, sect, key, default = None):
         return self.dict.get(key, default)
 
-    def getboolean(self, sect, key, default):
+    def getboolean(self, sect, key, default = False):
         try:
             if self.dict[key]:
                 return True

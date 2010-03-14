@@ -108,6 +108,14 @@ class PysievedPlugin(__init__.PysievedPlugin):
             self.log(7, 'err_str = %s' % err_str)
             self.log(5, 'check failed')
             return err_str
+
+        # It has been reported that exim -bf always returns 0
+        # and errors are reported on standard output instead.
+        if err_str.find('Sieve error') > 0:
+            self.log(7, 'err_str = %s' % err_str)
+            self.log(5, 'check failed')
+            return err_str
+
         self.log(5, 'check succeeded')
         return None
 
@@ -119,6 +127,9 @@ class PysievedPlugin(__init__.PysievedPlugin):
 
 
     def pre_save(self, tmpdir, script):
+        # It has been reported that Exim doesn't like CRLF.
+        script = script.replace('\r\n', '\n')
+
         if not re.match(self.sieve_re, script, re.S):
             script = self.sieve_hdr + '\n' + script
 

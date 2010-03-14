@@ -275,6 +275,27 @@ class PluginsTest(unittest.TestCase):
         self.generic_sasl(p, user, self.conf['password'])
 
 
+    def testMysqlExpandQuery(self):
+        try:
+            from plugins import mysql
+        except ImportError:
+            print 'skipping (deps), ',
+            return
+
+        if self.config.getboolean('MySQL', 'skip', False):
+            print 'skipping (conf), ',
+            return
+
+        auth_query = 'SELECT username FROM user WHERE username = %(username)s AND password = %(password)s and ACTIVE = 1'
+        query, values = mysql.expand_query(auth_query,
+                                           { 'username': 'foo',
+                                             'password': 'bar' })
+        self.assertEquals('SELECT username FROM user WHERE username = %s AND password = %s and ACTIVE = 1', query)
+        self.assertEquals(2, len(values))
+        self.assertEquals('foo', values[0])
+        self.assertEquals('bar', values[1])
+
+
     def testMysqlAuth(self):
         try:
             from plugins import mysql

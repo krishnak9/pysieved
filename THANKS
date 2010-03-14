@@ -26,4 +26,5 @@ Thanks to:
 * Modestas Vainius <modestas@vainius.eu> for a bugfix to pam.py
 * David Ramsden <david@0wned.it> for the Dovecot tip to use multiple
   authentication sockets for Postfix and pysieved
-
+* Claudemir Todo Bom <claudemir@todobom.com> for the original code
+  to store Exim SIEVE scripts in MySQL.

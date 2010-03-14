@@ -1,0 +1,119 @@
+Pysieved integration with Exim
+==============================
+
+Pysieved can be used to store SIEVE scripts for Exim.
+Since Exim does not export authentication or userdb mechanisms,
+the exim plugin cannot be used for those purposes. You will
+have to configure one of the other plugins to duplicate the
+way Exim gets that information.
+
+This document only describes storage options for Exim.
+
+
+
+Storing SIEVE scripts as .forward 
+---------------------------------
+
+By default, Exim recognizes a special form of the .forward
+file as a SIEVE script : if the file starts with the line
+'# Sieve filter', SIEVE processing will be enabled.
+
+If you use the exim plugin as pysieved storage, you will
+find that scripts get written to a .pysieved subdirectory
+in the user's home and the .forward becomes a symbolic link
+to the active script within that subdirectory. Exim's
+sendmail replacement will be used to validate the scripts
+as they get saved.
+
+You can customize the exim plugin by configuring an
+exim section in pysieved.ini :
+
+pysieved.ini :
+    [Exim]
+    sendmail = /usr/sbin/sendmail
+    scripts = .pysieved
+    active = .forward
+
+
+
+Storing scripts in MySQL
+------------------------
+
+Exim can retrieve data from a number of sources, including MySQL,
+which is the subject of this section.
+
+Note that you will be using the MySQL plugin for storage, instead
+of Exim. The Exim plugin will be used as a formatter.
+
+pysieved.ini :
+    [main]
+    ...
+    storage = MySQL
+    formatter = Exim
+    ...
+
+
+### Table for scripts storage
+
+You will have to create a MySQL table to store the SIEVE rules.
+One good example is the following structure :
+
+    CREATE TABLE IF NOT EXISTS `sieve` (
+      `address` varchar(128) NOT NULL,
+      `name` varchar(128) NOT NULL,
+      `script` text NOT NULL,
+      `active` tinyint(4) NOT NULL,
+      KEY `address` (`address`,`name`,`active`)
+    ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+
+Additional queries will have to be defined in the MySQL section.
+The sample pysieved.ini file contains the queries that go with
+the above table
+
+
+### Configuring Exim
+
+In order to access the SIEVE scripts that were stored using
+the above method, you now need to change the "data" lookup
+to return the desired content.
+
+E.g. you can add the following router :
+
+exim4.conf :
+    sieve_virtual_user:
+        driver = redirect
+        allow_fail
+        allow_defer
+        data = ${lookup mysql {SELECT script FROM users,sieve \
+                               where users.username = '$local_part@$domain' \
+                               and users.username = sieve.address ;}}
+               
+        directory_transport = sieve_users_directory
+        file_transport = sieve_users_directory
+        pipe_transport = address_pipe
+        allow_filter = true
+
+        ### you can change this... only check to be owned by the correct
+        ### user
+        sieve_vacation_directory=/var/spool/maildir/.sieve_vacation_db_$local_part@$domain
+
+It must be used before your default router, in a way that
+a user without sieve scripts will receive mail through it.
+
+The router references a transport, "sieve_users_directory".
+Here is a simple example of it, it shoud be added to your
+transport section of exim4.conf :
+
+exim4.conf :
+    sieve_users_directory:
+        driver = appendfile
+        group = mail
+        mode = 0660
+        mode_fail_narrower = false
+        envelope_to_add = true
+        return_path_add = true
+        maildir_format = true
+        directory = ${lookup mysql{ select homedir from users \
+                                    where username='$local_part@$domain' }{$value}{fail}}${sg {.$address_file}{^(.INBOX|.inbox)} {}}
+
