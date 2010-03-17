@@ -24,20 +24,23 @@ import re
 import __init__
 
 
-expand_re = re.compile('\%\((username|password|name|script)\)s|"\%\((username|password|name|script)\)s"')
+expand_names = (
+    'username',
+    'password',
+    'name',
+    'script',
+)
+
+expand_re_str = '%\((' + '|'.join(expand_names) + ')\)s|' +
+                '"%\((' + '|'.join(expand_names) + ')\)s"|' +
+                '\'%\((' + '|'.join(expand_names) + ')\)s\''
+expand_re = re.compile(expand_re_str)
 
 def expand_query(query, params):
     values = []
     for match in expand_re.finditer(query):
-        sub = match.group().replace('"', '')
-        if sub == '%(username)s':
-            values.append(params['username'])
-        elif sub == '%(password)s':
-            values.append(params['password'])
-        elif sub == '%(name)s':
-            values.append(params['name'])
-        elif sub == '%(script)s':
-            values.append(params['script'])
+        sub = match.group().replace('"', '').replace('\'', '')
+        values.append(params[sub[2:-2]])
 
     query = re.sub(expand_re, '%s', query)
 
