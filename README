@@ -34,9 +34,14 @@ Homedir lookup & session initiation:
 
 Storage:
 
-* Dovecot
-* Exim
+* Dovecot (.dovecot.sieve)
+* Exim (.forward)
+* MySQL ([dev branch](http://gitorious.org/pysieved/pysieved/commits/dev))
 
+Consumer ([dev branch](http://gitorious.org/pysieved/pysieved/commits/dev)):
+
+* Dovecot
+* [Exim](http://gitorious.org/pysieved/pages/Exim)
 
 Additional back-ends are easy to write, just copy one of the existing
 back-ends and start hacking.  No modifications are needed to any

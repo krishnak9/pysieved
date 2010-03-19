@@ -25,6 +25,14 @@ to the active script within that subdirectory. Exim's
 sendmail replacement will be used to validate the scripts
 as they get saved.
 
+pysieved.ini :
+    [main]
+    ...
+    storage = Exim
+    consumer = Exim
+    ...
+
+
 You can customize the exim plugin by configuring an
 exim section in pysieved.ini :
 
@@ -43,13 +51,13 @@ Exim can retrieve data from a number of sources, including MySQL,
 which is the subject of this section.
 
 Note that you will be using the MySQL plugin for storage, instead
-of Exim. The Exim plugin will be used as a formatter.
+of Exim. The Exim plugin will be declared as the consumer.
 
 pysieved.ini :
     [main]
     ...
     storage = MySQL
-    formatter = Exim
+    consumer = Exim
     ...
 
 
