@@ -31,10 +31,12 @@ expand_names = (
     'script',
 )
 
-expand_re_str = '%\((' + '|'.join(expand_names) + ')\)s|' +
-                '"%\((' + '|'.join(expand_names) + ')\)s"|' +
+expand_re_str = '%\((' + '|'.join(expand_names) + ')\)s|' + \
+                '"%\((' + '|'.join(expand_names) + ')\)s"|' + \
                 '\'%\((' + '|'.join(expand_names) + ')\)s\''
+
 expand_re = re.compile(expand_re_str)
+
 
 def expand_query(query, params):
     values = []

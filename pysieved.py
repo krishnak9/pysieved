@@ -152,8 +152,8 @@ def main():
                       None, None, True)
     storage = __import__('plugins.%s' % config.get('main', 'storage', 'Dovecot').lower(),
                          None, None, True)
-    formatter = __import__('plugins.%s' % config.get('main', 'formatter', 'Dovecot').lower(),
-                         None, None, True)
+    consumer = __import__('plugins.%s' % config.get('main', 'consumer', 'Dovecot').lower(),
+                          None, None, True)
 
 
     # If the same plugin is used in two places, recycle it
@@ -171,18 +171,18 @@ def main():
     else:
         store = storage.PysievedPlugin(log, config)
 
-    if formatter == auth:
-        format = authenticate
-    elif formatter == userdb:
-        format = homedir
-    elif formatter == storage:
-        format = store
+    if consumer == auth:
+        consume = authenticate
+    elif consumer == userdb:
+        consume = homedir
+    elif consumer == storage:
+        consume = store
     else:
-        format = formatter.PysievedPlugin(log, config)
+        consume = consumer.PysievedPlugin(log, config)
 
 
     class handler(managesieve.RequestHandler):
-        capabilities = store.capabilities
+        capabilities = consume.capabilities
 
         def __init__(self, *args):
             self.params = {}
@@ -239,10 +239,10 @@ def main():
                     'cert': tls_certChain}
 
         def pre_save(self, script):
-            return format.pre_save(tmpdir, script)
+            return consume.pre_save(tmpdir, script)
 
         def post_load(self, script):
-            return format.post_load(script)
+            return consume.post_load(script)
 
     if options.stdin:
         sock = socket.fromfd(0, socket.AF_INET, socket.SOCK_STREAM)
