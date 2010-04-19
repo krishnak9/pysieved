@@ -87,8 +87,9 @@ class FileStorage(__init__.ScriptStorage):
 
         # If they already have a script, shuffle it into where we want it
         if os.path.exists(self.active) and not os.path.islink(self.active):
-            os.rename(self.active, os.path.join(self.basedir, 'dovecot'))
-            self.set_active('dovecot')
+            rename_to = ''.join([ self.active_file, '.orig'])
+            os.rename(self.active, os.path.join(self.basedir, quote(rename_to)))
+            self.set_active(rename_to)
 
 
     def __setitem__(self, k, v):

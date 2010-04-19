@@ -461,6 +461,67 @@ class PluginsTest(unittest.TestCase):
                          home)
 
 
+    def testCourierAuth(self):
+        try:
+            from plugins import courier
+        except ImportError:
+            print 'skipping (deps), ',
+            return
+
+        if self.config.getboolean('Courier', 'skip', False):
+            print 'skipping (conf), ',
+            return
+
+        mux = config.get('Courier', 'mux', '')
+        uid = config.getint('Courier', 'uid', -1)
+        gid = config.getint('Courier', 'uid', -1)
+
+        if not mux:
+            print 'skipping (conf), ',
+            return
+
+        c = TestConfig(mux = mux, uid = uid, gid = gid)
+        p = courier.PysievedPlugin(printlog, c)
+
+        if '@' in self.conf['user']:
+            user = self.conf['user'].split('@')[0]
+        else:
+            user = self.conf['user']
+
+        self.generic_auth(p, user, self.conf['password'])
+        self.generic_sasl(p, user, self.conf['password'])
+
+
+    def testCourierLookup(self):
+        try:
+            from plugins import courier
+        except ImportError:
+            print 'skipping (deps), ',
+            return
+
+        if self.config.getboolean('Courier', 'skip', False):
+            print 'skipping (conf), ',
+            return
+
+        mux = config.get('Courier', 'mux', '')
+        uid = config.getint('Courier', 'uid', -1)
+        gid = config.getint('Courier', 'uid', -1)
+
+        if not mux:
+            print 'skipping (conf), ',
+            return
+
+        c = TestConfig(mux = mux, uid = uid, gid = gid)
+        p = courier.PysievedPlugin(printlog, c)
+
+        if '@' in self.conf['user']:
+            user = self.conf['user'].split('@')[0]
+        else:
+            user = self.conf['user']
+
+        self.generic_lookup(p, user)
+
+
     def generic_auth(self, plugin, login, password):
         auth = plugin.auth({'username': login, 'password': password})
         printlog(2, 'auth(%s) = %r' % (login, auth))

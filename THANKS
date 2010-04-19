@@ -28,3 +28,5 @@ Thanks to:
   authentication sockets for Postfix and pysieved
 * Claudemir Todo Bom <claudemir@todobom.com> for the original code
   to store Exim SIEVE scripts in MySQL.
+* Hrvoje Habjani <hrvoje.habjanic@zg.t-com.hr> for the Courier
+  authentication code and lmtp storage/consumer code.

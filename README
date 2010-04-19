@@ -23,6 +23,7 @@ Authentication:
 * SASL
 * LDAP ([dev branch](http://gitorious.org/pysieved/pysieved/commits/dev))
 * MySQL
+* Courier ([dev branch](http://gitorious.org/pysieved/pysieved/commits/dev))
 
 Homedir lookup & session initiation:
 
@@ -37,11 +38,13 @@ Storage:
 * Dovecot (.dovecot.sieve)
 * Exim (.forward)
 * MySQL ([dev branch](http://gitorious.org/pysieved/pysieved/commits/dev))
+* lmtpd ([dev branch](http://gitorious.org/pysieved/pysieved/commits/dev))
 
 Consumer ([dev branch](http://gitorious.org/pysieved/pysieved/commits/dev)):
 
 * Dovecot
 * [Exim](http://gitorious.org/pysieved/pages/Exim)
+* lmtpd ([dev branch](http://gitorious.org/pysieved/pysieved/commits/dev))
 
 Additional back-ends are easy to write, just copy one of the existing
 back-ends and start hacking.  No modifications are needed to any
