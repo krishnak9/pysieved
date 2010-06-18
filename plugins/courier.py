@@ -29,6 +29,8 @@ class PysievedPlugin(__init__.PysievedPlugin):
     def __fetchAuth(self, username, password):
         if len(self.mux)==0:
             return ''
+
+        self.log(7, 'Opening socket %s' % self.mux)
         try:
             authSocket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
             authSocket.connect(self.mux)
@@ -41,11 +43,15 @@ class PysievedPlugin(__init__.PysievedPlugin):
             authBuffer = '%s\nlogin\n%s\n%s\n' % (self.service, username, password)
             authBuffer = 'AUTH %d\n%s' % (len(authBuffer), authBuffer)
 
+        self.log(7, '> %r' % authBuffer)
         authSocket.sendall(authBuffer)
 
         authBuffer = authSocket.recv(2048)
+        self.log(7, '< %r' % authBuffer)
 
+        self.log(7, 'Closing socket %s' % self.mux)
         authSocket.close()
+
         return authBuffer
 
 
