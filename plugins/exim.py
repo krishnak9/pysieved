@@ -90,15 +90,11 @@ class PysievedPlugin(__init__.PysievedPlugin):
         testfile.write(script)
         testfile.close()
 
-        self.log(7, 'Popen("%s -bf %s < %s")' % (self.sendmail,
-                                                 testfile.name,
-                                                 '/dev/null'))
-        p = subprocess.Popen('%s -bf %s < %s' % (self.sendmail,
-                                                 testfile.name,
-                                                 '/dev/null'),
-                             shell=True, stdin=subprocess.PIPE,
-                             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                             close_fds=True)
+        self.log(7, 'Popen("%s -bf %s")' % (self.sendmail,
+                                            testfile.name))
+        p = subprocess.Popen([self.sendmail, '-bf', testfile.name],
+                             stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE, close_fds=True)
         (ret_str, err_str) = p.communicate()
         ret_str = ret_str.strip()
         err_str = err_str.strip()

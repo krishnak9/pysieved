@@ -271,12 +271,9 @@ class PysievedPlugin(__init__.PysievedPlugin):
         self.log(7, 'Popen("%s %s %s")' % (self.sievec,
                                            testfile.name,
                                            compiled.name))
-        p = subprocess.Popen('%s %s %s ' % (self.sievec,
-                                            testfile.name,
-                                            compiled.name),
-                             shell=True, stdin=subprocess.PIPE,
-                             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                             close_fds=True)
+        p = subprocess.Popen([self.sievec, testfile.name, compiled.name],
+                             stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE, close_fds=True)
         (ret_str, err_str) = p.communicate()
         ret_str = ret_str.strip()
         err_str = err_str.strip()
