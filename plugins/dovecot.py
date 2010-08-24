@@ -25,7 +25,7 @@ import tempfile
 import stat
 import socket
 import os
-import popen2
+import subprocess
 
 
 def b64_encode(s):
@@ -268,19 +268,19 @@ class PysievedPlugin(__init__.PysievedPlugin):
         compiled = FileStorage.TempFile(tmpdir)
         compiled.close()
 
-        self.log(7, 'popen2("%s %s %s")' % (self.sievec,
+        self.log(7, 'Popen("%s %s %s")' % (self.sievec,
+                                           testfile.name,
+                                           compiled.name))
+        p = subprocess.Popen('%s %s %s ' % (self.sievec,
                                             testfile.name,
-                                            compiled.name))
-        p = popen2.Popen3(('%s %s %s ' % (self.sievec,
-                                          testfile.name,
-                                          compiled.name)),
-                          True)
-        p.tochild.close()
-        ret_str = p.fromchild.read().strip()
-        err_str = p.childerr.read().strip()
-        p.fromchild.close()
-        p.childerr.close()
-        rc = p.wait()
+                                            compiled.name),
+                             shell=True, stdin=subprocess.PIPE,
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                             close_fds=True)
+        (ret_str, err_str) = p.communicate()
+        ret_str = ret_str.strip()
+        err_str = err_str.strip()
+        rc = p.returncode
         self.log(7, 'rc = %d' % rc)
         if rc:
             self.log(7, 'err_str = %s' % err_str)

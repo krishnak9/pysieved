@@ -22,7 +22,7 @@ import __init__
 import warnings
 import os
 import FileStorage
-import popen2
+import subprocess
 
 
 class PysievedPlugin(__init__.PysievedPlugin):
@@ -48,16 +48,23 @@ class PysievedPlugin(__init__.PysievedPlugin):
         testfile.write(script)
         testfile.close()
 
-        p = popen2.Popen3(('%s %s' % (self.checker,
-                                      testfile.name)),
-                          True)
-        p.tochild.close()
-        ret_str = p.fromchild.read().strip()
-        err_str = p.childerr.read().strip()
-        p.fromchild.close()
-        p.childerr.close()
-        if p.wait():
+        self.log(7, 'Popen("%s %s")' % (self.checker,
+                                        testfile.name))
+        p = subprocess.Popen('%s %s' % (self.checker,
+                                        testfile.name),
+                             shell=True, stdin=subprocess.PIPE,
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                             close_fds=True)
+        (ret_str, err_str) = p.communicate()
+        ret_str = ret_str.strip()
+        err_str = err_str.strip()
+        rc = p.returncode
+        self.log(7, 'rc = %d' % rc)
+        if rc:
+            self.log(7, 'err_str = %s' % err_str)
+            self.log(5, 'check failed')
             return err_str
+        self.log(5, 'check succeeded')
         return None
 
 

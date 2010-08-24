@@ -22,7 +22,7 @@ import __init__
 import FileStorage
 import socket
 import os
-import popen2
+import subprocess
 import re
 
 
@@ -90,19 +90,19 @@ class PysievedPlugin(__init__.PysievedPlugin):
         testfile.write(script)
         testfile.close()
 
-        self.log(7, 'popen2("%s -bf %s < %s")' % (self.sendmail,
-                                                  testfile.name,
-                                                  '/dev/null'))
-        p = popen2.Popen3(('%s -bf %s < %s' % (self.sendmail,
-                                               testfile.name,
-                                               '/dev/null')),
-                          True)
-        p.tochild.close()
-        ret_str = p.fromchild.read().strip()
-        err_str = p.childerr.read().strip()
-        p.fromchild.close()
-        p.childerr.close()
-        rc = p.wait()
+        self.log(7, 'Popen("%s -bf %s < %s")' % (self.sendmail,
+                                                 testfile.name,
+                                                 '/dev/null'))
+        p = subprocess.Popen('%s -bf %s < %s' % (self.sendmail,
+                                                 testfile.name,
+                                                 '/dev/null'),
+                             shell=True, stdin=subprocess.PIPE,
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                             close_fds=True)
+        (ret_str, err_str) = p.communicate()
+        ret_str = ret_str.strip()
+        err_str = err_str.strip()
+        rc = p.returncode
         self.log(7, 'rc = %d' % rc)
         if rc:
             self.log(7, 'err_str = %s' % err_str)
