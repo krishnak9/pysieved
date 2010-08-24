@@ -34,7 +34,7 @@ class EximStorage(FileStorage.FileStorage):
         self.basedir = os.path.join(self.homedir, self.mydir)
         self.active = os.path.join(self.homedir, self.active_file)
         self.sieve_hdr = '# Sieve filter'
-        self.sieve_re = re.compile('^' + re.escape(self.sieve_hdr))
+        self.sieve_re = re.compile('^' + re.escape(self.sieve_hdr), re.S)
 
         # Create our directory if needed
         if not os.path.exists(self.basedir):
@@ -45,7 +45,7 @@ class EximStorage(FileStorage.FileStorage):
             try:
                 # Make sure this is an Exim Sieve filter
                 script = file(self.active).read()
-                if re.match(self.sieve_re, script, re.S):
+                if re.match(self.sieve_re, script):
                     os.rename(self.active, os.path.join(self.basedir, 'exim'))
                     self.set_active('exim')
             except IOError:
@@ -53,7 +53,7 @@ class EximStorage(FileStorage.FileStorage):
 
 
     def __setitem__(self, k, v):
-        if not re.match(self.sieve_re, v, re.S):
+        if not re.match(self.sieve_re, v):
             self.log(5, 'Adding Sieve filter header')
             v = self.sieve_hdr + '\n' + v
         FileStorage.FileStorage.__setitem__(self, k, v)
@@ -74,7 +74,7 @@ class PysievedPlugin(__init__.PysievedPlugin):
         self.gid = config.getint('Exim', 'gid', -1)
 
         self.sieve_hdr = '# Sieve filter'
-        self.sieve_re = re.compile('^' + re.escape(self.sieve_hdr))
+        self.sieve_re = re.compile('^' + re.escape(self.sieve_hdr), re.S)
 
         # Drop privileges here if all users share the same uid/gid
         if self.gid >= 0:
@@ -130,7 +130,7 @@ class PysievedPlugin(__init__.PysievedPlugin):
         # It has been reported that Exim doesn't like CRLF.
         script = script.replace('\r\n', '\n')
 
-        if not re.match(self.sieve_re, script, re.S):
+        if not re.match(self.sieve_re, script):
             script = self.sieve_hdr + '\n' + script
 
         err_str = self.sieve_has_error(tmpdir, script)
