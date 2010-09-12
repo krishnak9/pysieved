@@ -75,6 +75,8 @@ class PysievedPlugin(__init__.PysievedPlugin):
         for authLine in authBuffer.split('\n'):
             if authLine.find('USERNAME') == 0:
                 return True
+            if authLine.find('UID') == 0:
+                return True
         return False
 
 
