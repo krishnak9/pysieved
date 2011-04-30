@@ -78,7 +78,7 @@ def main():
                       action='store', dest='tls_cert', default='')
     parser.add_option('--no-daemon',
                       help='Do not daemonize (but stay in foreground)',
-                      action='store_false', dest='daemon', default=True)
+                      action='store_true', dest='nodaemon', default=False)
     (options, args) = parser.parse_args()
 
     # Read config file
@@ -97,7 +97,7 @@ def main():
     tls_passphrase = config.get('TLS', 'passphrase', '')
 
     if options.debug:
-        options.daemon = False
+        options.nodaemon = True
 
     # Define the log function
     syslog.openlog('pysieved[%d]' % (os.getpid()), 0, syslog.LOG_MAIL)
@@ -257,7 +257,7 @@ def main():
 
         s = Server((addr, port), handler)
 
-        if options.daemon:
+        if not options.nodaemon:
             daemon.daemon(pidfile=pidfile)
         log(1, 'Listening on %s port %d' % (addr or "INADDR_ANY", port))
         s.serve_forever()
