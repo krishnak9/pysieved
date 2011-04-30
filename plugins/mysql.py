@@ -19,6 +19,7 @@
 ## USA
 
 import MySQLdb
+import MySQLdb.constants.CR
 import re
 
 import __init__
@@ -47,6 +48,74 @@ def expand_query(query, params):
     query = re.sub(expand_re, '%s', query)
 
     return (query, values)
+
+
+class MysqlConnection():
+    def __init__(self, log, dbhost, dbuser, dbpass, dbname):
+        self.log = log
+        self.dbhost = dbhost
+        self.dbuser = dbuser
+        self.dbpass = dbpass
+        self.dbname = dbname
+        self.conn = None
+
+
+    def __del__(self):
+        if self.conn:
+            try:
+                self.conn.close()
+            except:
+                pass
+
+        self.conn = None
+
+
+    def connect(self):
+        self.log(5, 'connecting to database %s on %s' % (self.dbname, self.dbhost))
+        try:
+            self.conn = MySQLdb.connect(host = self.dbhost,
+                                        user = self.dbuser,
+                                        passwd = self.dbpass,
+                                        db = self.dbname)
+            self.log(5, 'connected to database %s on %s' % (self.dbname, self.dbhost))
+            return True
+        except MySQLdb.MySQLError, e:
+            self.conn = None
+            self.log(5, 'failed connection to database %s on %s: %s' % (self.dbname, self.dbhost, str(e)))
+            return False
+
+
+    def demand_connect(self):
+        if self.conn is None:
+            return self.connect()
+
+        try:
+            self.conn.ping()
+        except MySQLdb.MySQLError, e:
+            if e[0] == MySQLdb.constants.CR.SERVER_GONE_ERROR:
+                self.log(5, 'lost connection to database %s on %s' % (self.dbname, self.dbhost))
+                return self.connect()
+
+            return False
+
+        return True
+
+
+    def cursor(self):
+        if self.demand_connect():
+            return self.conn.cursor()
+        else:
+            raise RuntimeError('not connected to database')
+
+
+    def close():
+        if self.conn:
+            try:
+                self.conn.close()
+            except:
+                pass
+
+        self.conn = None
 
 
 class MysqlStorage(__init__.ScriptStorage):
@@ -188,10 +257,7 @@ class PysievedPlugin(__init__.PysievedPlugin):
         self.user_query = config.get('MySQL', 'user_query')
         self.config = config
 
-        self.conn = MySQLdb.connect(host = dbhost,
-                                    user = dbuser,
-                                    passwd = dbpass,
-                                    db = dbname)
+        self.conn = MysqlConnection(self.log, dbhost, dbuser, dbpass, dbname)
 
 
     def __del__(self):
