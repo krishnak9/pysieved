@@ -59,7 +59,7 @@ def main():
                       help="Set logging verbosity level (default 1)",
                       action='store', dest='verbosity', default=1, type='int')
     parser.add_option('-d', '--debug',
-                      help='Log to stderr',
+                      help='Log to stderr (implies --no-daemon)',
                       action='store_true', dest='debug', default=False)
     parser.add_option('-B', '--base',
                       help='Mail base directory',
@@ -76,6 +76,9 @@ def main():
     parser.add_option('-C', '--cert',
                       help='TLS certificate file',
                       action='store', dest='tls_cert', default='')
+    parser.add_option('--no-daemon',
+                      help='Do not daemonize (but stay in foreground)',
+                      action='store_false', dest='daemon', default=True)
     (options, args) = parser.parse_args()
 
     # Read config file
@@ -93,6 +96,8 @@ def main():
     tls_cert = options.tls_cert or config.get('TLS', 'cert', '')
     tls_passphrase = config.get('TLS', 'passphrase', '')
 
+    if options.debug:
+        options.daemon = False
 
     # Define the log function
     syslog.openlog('pysieved[%d]' % (os.getpid()), 0, syslog.LOG_MAIL)
@@ -252,7 +257,7 @@ def main():
 
         s = Server((addr, port), handler)
 
-        if not options.debug:
+        if options.daemon:
             daemon.daemon(pidfile=pidfile)
         log(1, 'Listening on %s port %d' % (addr or "INADDR_ANY", port))
         s.serve_forever()
