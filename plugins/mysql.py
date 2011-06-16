@@ -50,7 +50,7 @@ def expand_query(query, params):
     return (query, values)
 
 
-class MysqlConnection():
+class MysqlConnection:
     def __init__(self, log, dbhost, dbuser, dbpass, dbname):
         self.log = log
         self.dbhost = dbhost
