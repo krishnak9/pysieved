@@ -55,8 +55,7 @@ managesieve protocol or forking.
 Download
 --------
 
-Version 1.1 was released on March 7, 2010, rolling the long-pending
-support for Exim into an official release.
+Version 1.2 was released on January 27, 2014.
 
 You can get the latest version [as a tarball](http://gitorious.org/pysieved/pysieved/archive-tarball/master),
 or with git:
