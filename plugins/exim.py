@@ -98,6 +98,8 @@ class PysievedPlugin(__init__.PysievedPlugin):
         (ret_str, err_str) = p.communicate()
         ret_str = ret_str.strip()
         err_str = err_str.strip()
+        err_str = err_str.replace('"'," ")
+        err_str = err_str.replace('\n'," ")
         rc = p.returncode
         self.log(7, 'rc = %d' % rc)
         if rc:
