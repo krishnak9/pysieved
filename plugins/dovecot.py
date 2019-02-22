@@ -209,7 +209,7 @@ class PysievedPlugin(__init__.PysievedPlugin):
                             self.version[1]))
             self.log(7, '> %r' % init_string)
             self.user_sock.sendall(init_string)
-            greet = self.user_sock.recv(1024)
+            greet = self.user_sock.recv(2048)
             self.log(7, '< %r' % greet)
             if greet.find('VERSION\t%d\t' % self.version[0]) == -1:
                 raise ValueError('Incompatible major version number')
@@ -222,7 +222,7 @@ class PysievedPlugin(__init__.PysievedPlugin):
                           self.service))
         self.log(7, '> %r' % lookup_string)
         self.user_sock.sendall(lookup_string)
-        ret = self.user_sock.recv(1024)
+        ret = self.user_sock.recv(2048)
         self.log(7, '< %r' % ret)
 
         if ret.startswith('USER\t'):
